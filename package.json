@@ -1,0 +1,29 @@
+{
+  "name": "websockets-chat-starter",
+  "version": "1.0.0",
+  "description": "web sockets homework",
+  "main": "./src/server.js",
+  "scripts": {
+    "start": "node ./src/server.js",
+    "pretest": "eslint ./src --fix",
+    "test": "echo \"Tests complete\""
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Jordo754/websockets-chat-starter.git"
+  },
+  "author": "Jordan Mato",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Jordo754/websockets-chat-starter/issues"
+  },
+  "homepage": "https://github.com/Jordo754/websockets-chat-starter#readme",
+  "dependencies": {
+    "socket.io": "^1.7.2"
+  },
+  "devDependencies": {
+    "eslint": "^3.15.0",
+    "eslint-config-airbnb": "^14.1.0",
+    "eslint-plugin-import": "^2.2.0"
+  }
+}
