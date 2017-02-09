@@ -16,10 +16,8 @@
     const connectSocket = (e) => {
       document.querySelector('#connectMessage').innerHTML = "";
       const message = document.querySelector("#message");
-      const send = document.querySelector('#send');
-      send.addEventListener('click', sendMessage);
-      var chat = document.querySelector("#chat");
-      var socket =io.connect();
+      const chat = document.querySelector("#chat");
+      const socket = io.connect();
       
       socket.on('connect', () => {
         console.log('connecting');
@@ -35,17 +33,83 @@
       
       socket.on('msg', (data) => {
         console.log(data);
-        if (data.msg[0] === 'N') {
-          document.querySelector('#connectMessage').innerHTML = data.msg;
+        const newMsg = document.createElement('p');
+        
+        if (data.msg[0] === '/') {
+          const commandString = data.msg.split(' ')[0];
+          const messageString = data.msg.substring(data.msg.indexOf(' ') + 1);
+          var nameString, afterName;
+          
+          switch (commandString) {
+            case '/me': {
+              newMsg.style.color = data.color;
+              newMsg.innerHTML = `<em>${data.name} ${messageString}\</em>`;
+              break;
+            }
+            case '/w': {
+              //check for To or From
+              const flag = messageString.split(' ')[0];
+              const name = messageString.split(' ')[1];
+              const afterName = messageString.substring(messageString.indexOf(' ', messageString.indexOf(name)) + 1);
+              
+              if (flag === 'To') {
+                newMsg.style.color = data.color;
+                newMsg.innerHTML = `${flag} \<span style="color:${data.recipColor}">${name}:\</span> ${afterName}`;
+              } else {
+                newMsg.style.color = data.senderColor;
+                newMsg.innerHTML = `${flag} ${name}: ${afterName}`;
+              }
+              break;
+            }
+            case '/join': {
+              if (data.name !== "Server") {
+                newMsg.innerHTML = `Invalid chat command: ${commandString}`;
+              } else {
+                nameString = messageString.substring(0, messageString.indexOf(' '));
+                afterName = messageString.substring(messageString.indexOf(' '));
+                newMsg.innerHTML = `<span style="color:${data.color}">${nameString}\</span> ${afterName}`;
+              }
+              break;
+            }
+            case '/leave': {
+              if (data.name !== "Server") {
+                newMsg.innerHTML = "Invalid chat command: " + commandString;
+              } else {
+                nameString = messageString.substring(0, messageString.indexOf(' '));
+                afterName = messageString.substring(messageString.indexOf(' '));
+                newMsg.innerHTML = `<span style="color:${data.color}">${nameString}\</span> ${afterName}`;
+              }
+              break;
+            }
+            default: {
+              newMsg.innerHTML = `Invalid chat command: ${commandString}`;
+              break;
+            }
+          };
+          
+        } else {
+          newMsg.innerHTML = `<span style="color:${data.color}">${data.name}:\</span> ${data.msg}`;
         }
+        
+        chat.appendChild(newMsg);
+      });
+      
+      socket.on('nameError', (data) => {
+        console.log(data);
+        document.querySelector('#connectMessage').innerHTML = data.msg;
+        socket.disconnect();
       });
       
       const sendMessage = (e) => {
-        console.log('send message');
-        if (!message.value) {
+        if (message.value) {
+          console.log(message.value);
           socket.emit('msgToServer', { msg: message.value });
+          message.value = "";
         }
       };
+      
+      const send = document.querySelector('#send');
+      send.addEventListener('click', sendMessage);
     };
 
     const init = () => {
@@ -56,9 +120,16 @@
     window.onload = init;
   </script>
   <style>
-    textarea {
+    div {
       display: block;
       background-color: #EEEEEE;
+      width: 303px;
+      height: 306px;
+      overflow-y: scroll;
+    }
+    
+    p {
+      margin: 0;
     }
   </style>
 </head>
@@ -72,6 +143,6 @@
   <input id="message" name="message" type="text"/>
   <input id="send" type="button" value="send" />
 
-  <textarea id="chat" rows="20" cols="40" readonly> </textarea>
+  <div id="chat"></div>
 </body>
 </html>
