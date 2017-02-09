@@ -14,7 +14,10 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-core/5.8.34/browser.min.js"></script>
   <script type="text/babel">
     const connectSocket = (e) => {
-      var message = document.querySelector("#message");
+      document.querySelector('#connectMessage').innerHTML = "";
+      const message = document.querySelector("#message");
+      const send = document.querySelector('#send');
+      send.addEventListener('click', sendMessage);
       var chat = document.querySelector("#chat");
       var socket =io.connect();
       
@@ -32,7 +35,17 @@
       
       socket.on('msg', (data) => {
         console.log(data);
+        if (data.msg[0] === 'N') {
+          document.querySelector('#connectMessage').innerHTML = data.msg;
+        }
       });
+      
+      const sendMessage = (e) => {
+        console.log('send message');
+        if (!message.value) {
+          socket.emit('msgToServer', { msg: message.value });
+        }
+      };
     };
 
     const init = () => {
@@ -53,6 +66,7 @@
   <label for="user">Username:</label>
   <input id="username" name="user" type="text"/>
   <input id="connect" type='button' value='connect'/>
+  <label id="connectMessage"></label>
   </br>
   <label for="message">Message:</label>
   <input id="message" name="message" type="text"/>

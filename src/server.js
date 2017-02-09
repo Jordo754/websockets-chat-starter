@@ -35,8 +35,7 @@ const onJoined = (sock) => {
 
       socket.name = data.name;
       socket.emit('msg', joinMsg);
-    } 
-    else {
+    } else {
       // message back to new user
       const joinMsg = {
         name: 'server',
@@ -73,30 +72,19 @@ const onMsg = (sock) => {
 
 const onDisconnect = (sock) => {
   const socket = sock;
-  
-  socket.on('disconnect', (data) => {
-    // message back to new user
-    const leaveMsg = {
-      name: 'server',
-      msg: `There are ${Object.keys(users).length} users online`,
-    };
 
-    socket.name = data.name;
-    socket.emit('msg', joinMsg);
-
-    socket.join('room1');
-
+  socket.on('disconnect', () => {
     // announcement to everyone in room
     const response = {
       name: 'server',
-      msg: `${data.name} has joined the room.`,
+      msg: `${socket.name} has left the room.`,
     };
     socket.broadcast.to('room1').emit('msg', response);
 
-    console.log(`${data.name} joined`);
+    console.log(`${socket.name} left`);
     // success message back to new user
-    socket.emit('msg', { name: 'server', msg: 'You joined the room' });
-    users[data.name] = socket;
+    socket.emit('msg', { name: 'server', msg: 'You left the room' });
+    delete users[socket.name];
   });
 };
 
