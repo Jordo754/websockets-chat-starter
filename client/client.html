@@ -81,6 +81,10 @@
               }
               break;
             }
+            case '/error': {
+              newMsg.innerHTML = `Server: ${data.msg.substring(6)}`;
+              break;
+            }
             default: {
               newMsg.innerHTML = `Invalid chat command: ${commandString}`;
               break;

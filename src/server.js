@@ -97,6 +97,8 @@ const onMsg = (sock) => {
 
             // send to recipient
             users[user].emit('msg', { name: socket.name, msg: `${commandString} From ${socket.name} ${pm}`, color: users[user].color, senderColor: socket.color });
+          } else {
+            socket.emit('msg', { name: 'Server', msg: `/error ${user} does not exist.` });
           }
           break;
         }
