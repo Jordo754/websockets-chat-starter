@@ -84,6 +84,10 @@ const onMsg = (sock) => {
       const messageString = data.msg.substring(data.msg.indexOf(' ') + 1);
 
       switch (commandString) {
+        case '/me': {
+          io.sockets.in('room1').emit('msg', { name: socket.name, msg: data.msg, color: socket.color });
+          break;
+        }
         case '/w': {
           const user = messageString.split(' ')[0];
           const pm = messageString.substring(messageString.indexOf(' ') + 1);
