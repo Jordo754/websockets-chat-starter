@@ -53,7 +53,7 @@ const onJoined = (sock) => {
       socket.name = data.name;
       socket.color = userColors[count];
       count++;
-      if (count > userColors.size) {
+      if (count >= userColors.length) {
         count = 0;
       }
       socket.emit('msg', joinMsg);
