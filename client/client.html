@@ -92,6 +92,7 @@
         }
         
         chat.appendChild(newMsg);
+        chat.scrollTop = chat.scrollHeight;
       });
       
       socket.on('nameError', (data) => {
