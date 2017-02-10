@@ -22,6 +22,12 @@ const io = socketio(app);
 // object to hold all of our connected users
 const users = {};
 const userColors = ['red', 'blue', 'green', 'orange', 'purple'];
+const roomList = {
+  lobby: { roomName: 'Lobby', perms: 'public', },
+  room1: { roomName: 'Room 1', perms: 'public', },
+  room2: { roomName: 'Room 2', perms: 'public', },
+  sneakyRoom: { roomName: "Jordan's Hideaway", perms: 'hidden', },
+};
 let count = 0;
 
 const onJoined = (sock) => {
@@ -58,7 +64,7 @@ const onJoined = (sock) => {
       }
       socket.emit('msg', joinMsg);
 
-      socket.join('room1');
+      socket.join('lobby');
 
       // announcement to everyone in room
       const response = {
@@ -66,11 +72,12 @@ const onJoined = (sock) => {
         msg: `/join ${data.name} has joined the room.`,
         color: socket.color,
       };
-      socket.broadcast.to('room1').emit('msg', response);
-
+      socket.broadcast.to('lobby').emit('msg', response);
+      
       console.log(`${data.name} joined`);
       // success message back to new user
-      socket.emit('msg', { name: 'Server', msg: 'You joined the room' });
+      socket.emit('msg', { name: 'Server', msg: `/connect You joined 'Lobby'`, rooms: roomList, roomCount: 4 });
+      socket.room = 'lobby'
       users[data.name] = socket;
     }
   });
@@ -85,7 +92,7 @@ const onMsg = (sock) => {
 
       switch (commandString) {
         case '/me': {
-          io.sockets.in('room1').emit('msg', { name: socket.name, msg: data.msg, color: socket.color });
+          io.sockets.in(socket.room).emit('msg', { name: socket.name, msg: data.msg, color: socket.color });
           break;
         }
         case '/w': {
@@ -103,6 +110,34 @@ const onMsg = (sock) => {
           break;
         }
         case '/join': {
+          const roomToJoin = messageString;
+          console.log(roomToJoin);
+          if (roomList[roomToJoin]) {
+            socket.leave(socket.room);
+            socket.join(roomToJoin);
+            users[socket.name].room = roomToJoin;
+            
+            const responseLeave = {
+              name: 'Server',
+              msg: `/leave ${socket.name} has left the room.`,
+              color: socket.color,
+            };
+            socket.broadcast.to(socket.room).emit('msg', responseLeave);
+            
+            const response = {
+              name: 'Server',
+              msg: `/join ${socket.name} has joined the room.`,
+              color: socket.color,
+            };
+            socket.broadcast.to(roomToJoin).emit('msg', response);
+
+            console.log(`${socket.name} joined`);
+            // success message back to new user
+            socket.emit('msg', { name: 'Server', msg: `You joined '${roomList[roomToJoin].roomName}'` });
+          }
+          break;
+        }
+        case '/leave': {
           break;
         }
         default: {
@@ -113,7 +148,7 @@ const onMsg = (sock) => {
         }
       }
     } else {
-      io.sockets.in('room1').emit('msg', { name: socket.name, msg: data.msg, color: socket.color });
+      io.sockets.in(socket.room).emit('msg', { name: socket.name, msg: data.msg, color: socket.color });
     }
   });
 };
@@ -129,7 +164,7 @@ const onDisconnect = (sock) => {
         msg: `/leave ${socket.name} has left the room.`,
         color: socket.color,
       };
-      socket.broadcast.to('room1').emit('msg', response);
+      socket.broadcast.to(socket.room).emit('msg', response);
 
       console.log(`${socket.name} left`);
       // success message back to new user

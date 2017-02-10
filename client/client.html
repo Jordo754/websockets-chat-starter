@@ -17,6 +17,7 @@
       document.querySelector('#connectMessage').innerHTML = "";
       const message = document.querySelector("#message");
       const chat = document.querySelector("#chat");
+      const rooms = document.querySelector("#rooms");
       const socket = io.connect();
       
       socket.on('connect', () => {
@@ -41,6 +42,18 @@
           var nameString, afterName;
           
           switch (commandString) {
+            case '/connect': {
+              newMsg.innerHTML = `<span style="color:${data.color}">${data.name}:\</span> ${data.msg.substring(9)}`;
+              
+              const roomCount = data.roomCount;
+              for (var i = 0; i < roomCount; i++) {
+                const room = document.createElement('p');
+                room.innerHTML = data.rooms[i].roomName;
+                rooms.appendChild(room);
+              }
+              
+              break;
+            }
             case '/me': {
               newMsg.style.color = data.color;
               newMsg.innerHTML = `<em>${data.name} ${messageString}\</em>`;
@@ -125,6 +138,10 @@
     window.onload = init;
   </script>
   <style>
+    body {
+      width: 403px;
+    }
+    
     div {
       display: block;
       background-color: #EEEEEE;
@@ -136,18 +153,42 @@
     p {
       margin: 0;
     }
+    
+    section {
+      clear: both;
+    }
+    
+    #chat {
+      float: left;
+    }
+    
+    #rooms {
+      float: right;
+      overflow-y: hidden;
+      width: 100px;
+      height 306px;
+    }
+    
+    h4 {
+      margin: 0;
+    }
   </style>
 </head>
 <body>
-  <label for="user">Username:</label>
-  <input id="username" name="user" type="text"/>
-  <input id="connect" type='button' value='connect'/>
-  <label id="connectMessage"></label>
-  </br>
-  <label for="message">Message:</label>
-  <input id="message" name="message" type="text"/>
-  <input id="send" type="button" value="send" />
-
+  <section>
+    <label for="user">Username:</label>
+    <input id="username" name="user" type="text"/>
+    <input id="connect" type='button' value='connect'/>
+    <label id="connectMessage"></label>
+    </br>
+    <label for="message">Message:</label>
+    <input id="message" name="message" type="text"/>
+    <input id="send" type="button" value="send" />
+  </section>
+  
   <div id="chat"></div>
+  <div id="rooms">
+  <h4>Rooms:</h4>
+  </div>
 </body>
 </html>
