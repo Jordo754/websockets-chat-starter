@@ -112,16 +112,16 @@ const onMsg = (sock) => {
         case '/join': {
           const roomToJoin = messageString;
           if (roomList[roomToJoin]) {
-            socket.leave(socket.room);
-            socket.join(roomToJoin);
-            users[socket.name].room = roomToJoin;
-
             const responseLeave = {
               name: 'Server',
               msg: `/leave ${socket.name} has left the room.`,
               color: socket.color,
             };
             socket.broadcast.to(socket.room).emit('msg', responseLeave);
+            
+            socket.leave(socket.room);
+            socket.join(roomToJoin);
+            users[socket.name].room = roomToJoin;
 
             const response = {
               name: 'Server',
