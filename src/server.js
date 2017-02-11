@@ -23,10 +23,10 @@ const io = socketio(app);
 const users = {};
 const userColors = ['red', 'blue', 'green', 'orange', 'purple'];
 const roomList = {
-  lobby: { roomName: 'Lobby', perms: 'public', },
-  room1: { roomName: 'Room 1', perms: 'public', },
-  room2: { roomName: 'Room 2', perms: 'public', },
-  sneakyRoom: { roomName: "Jordan's Hideaway", perms: 'hidden', },
+  lobby: { roomName: 'Lobby', perms: 'public' },
+  room1: { roomName: 'Room 1', perms: 'public' },
+  room2: { roomName: 'Room 2', perms: 'public' },
+  sneakyRoom: { roomName: "Jordan's Hideaway", perms: 'hidden' },
 };
 let count = 0;
 
@@ -73,11 +73,11 @@ const onJoined = (sock) => {
         color: socket.color,
       };
       socket.broadcast.to('lobby').emit('msg', response);
-      
+
       console.log(`${data.name} joined`);
       // success message back to new user
-      socket.emit('msg', { name: 'Server', msg: `/connect You joined 'Lobby'`, rooms: roomList, roomCount: 4 });
-      socket.room = 'lobby'
+      socket.emit('msg', { name: 'Server', msg: '/connect You joined \'Lobby\'', room: 'lobby', rooms: roomList });
+      socket.room = 'lobby';
       users[data.name] = socket;
     }
   });
@@ -111,19 +111,18 @@ const onMsg = (sock) => {
         }
         case '/join': {
           const roomToJoin = messageString;
-          console.log(roomToJoin);
           if (roomList[roomToJoin]) {
             socket.leave(socket.room);
             socket.join(roomToJoin);
             users[socket.name].room = roomToJoin;
-            
+
             const responseLeave = {
               name: 'Server',
               msg: `/leave ${socket.name} has left the room.`,
               color: socket.color,
             };
             socket.broadcast.to(socket.room).emit('msg', responseLeave);
-            
+
             const response = {
               name: 'Server',
               msg: `/join ${socket.name} has joined the room.`,
@@ -133,7 +132,7 @@ const onMsg = (sock) => {
 
             console.log(`${socket.name} joined`);
             // success message back to new user
-            socket.emit('msg', { name: 'Server', msg: `You joined '${roomList[roomToJoin].roomName}'` });
+            socket.emit('msg', { name: 'Server', msg: `/connect You joined '${roomList[roomToJoin].roomName}'`, room: roomToJoin, rooms: roomList });
           }
           break;
         }

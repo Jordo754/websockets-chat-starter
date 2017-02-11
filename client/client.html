@@ -45,12 +45,7 @@
             case '/connect': {
               newMsg.innerHTML = `<span style="color:${data.color}">${data.name}:\</span> ${data.msg.substring(9)}`;
               
-              const roomCount = data.roomCount;
-              for (var i = 0; i < roomCount; i++) {
-                const room = document.createElement('p');
-                room.innerHTML = data.rooms[i].roomName;
-                rooms.appendChild(room);
-              }
+              loadRooms(data.room, data.rooms);
               
               break;
             }
@@ -113,17 +108,44 @@
       });
       
       socket.on('nameError', (data) => {
-        console.log(data);
         document.querySelector('#connectMessage').innerHTML = data.msg;
         socket.disconnect();
       });
       
       const sendMessage = (e) => {
         if (message.value) {
-          console.log(message.value);
           socket.emit('msgToServer', { msg: message.value });
           message.value = "";
         }
+      };
+      
+      const loadRooms = (currentRoom, roomList) => {
+        rooms.innerHTML = '<h4>Rooms:</h4>';
+        rooms.style.width = '';
+        const roomNames = Object.keys(roomList);
+        const roomCount = roomNames.length;
+        for (var i = 0; i < roomCount; i++) {
+          if (roomList[roomNames[i]].perms === 'public' || currentRoom === roomNames[i]) {
+            const room = document.createElement('p');
+            const clickWraper = document.createElement('a')
+
+            clickWraper.innerHTML = roomList[roomNames[i]].roomName;
+            clickWraper.href = "";
+            console.log(roomNames[i]);
+            clickWraper.roomToJoin = roomNames[i];
+            clickWraper.onclick = function() {
+              socket.emit('msgToServer', { msg: `/join ${clickWraper.roomToJoin}` });
+              return false;
+            };
+
+            room.appendChild(clickWraper);
+            rooms.appendChild(room);
+          }
+        }
+        if (rooms.offsetWidth !== 100) {
+          rooms.style.width = (rooms.offsetWidth + 10) + 'px';
+        }
+        document.querySelector('body').style.width = (chat.offsetWidth + rooms.offsetWidth) + 'px';
       };
       
       const send = document.querySelector('#send');
@@ -145,7 +167,6 @@
     div {
       display: block;
       background-color: #EEEEEE;
-      width: 303px;
       height: 306px;
       overflow-y: scroll;
     }
@@ -154,19 +175,25 @@
       margin: 0;
     }
     
+    a {
+      color: black;
+      text-decoration: none;
+    }
+    
     section {
       clear: both;
+      width: 313px;
     }
     
     #chat {
       float: left;
+      width: 303px;
     }
     
     #rooms {
       float: right;
       overflow-y: hidden;
-      width: 100px;
-      height 306px;
+      min-width: 100px;
     }
     
     h4 {
