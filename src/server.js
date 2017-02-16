@@ -36,12 +36,29 @@ const onJoined = (sock) => {
   socket.on('join', (data) => {
     // check if user is already in room
     if (users[data.name]) {
-      const joinMsg = {
-        name: 'Server',
-        msg: `Name '${data.name}' is already in use. Please select a new name.`,
-      };
+      if (data.newName) {
+        const renameMsg = {
+          name: 'Server',
+          msg: `You have changed your name to ${data.newName}`,
+        };
 
-      socket.emit('nameError', joinMsg);
+        socket.emit('msg', renameMsg);
+
+        renameMsg.msg = `${data.name} has changed their name to ${data.newName}`;
+
+        socket.broadcast.to(socket.room).emit('msg', renameMsg);
+
+        users[data.newName] = socket;
+        delete users[socket.name];
+        socket.name = data.newName;
+      } else {
+        const joinMsg = {
+          name: 'Server',
+          msg: `Name '${data.name}' is already in use. Please select a new name.`,
+        };
+
+        socket.emit('nameError', joinMsg);
+      }
     } else if (data.name === 'unknown') {
       const joinMsg = {
         name: 'Server',
@@ -118,7 +135,7 @@ const onMsg = (sock) => {
               color: socket.color,
             };
             socket.broadcast.to(socket.room).emit('msg', responseLeave);
-            
+
             socket.leave(socket.room);
             socket.join(roomToJoin);
             users[socket.name].room = roomToJoin;

@@ -19,34 +19,35 @@
       const chat = document.querySelector("#chat");
       const rooms = document.querySelector("#rooms");
       const socket = io.connect();
-      
+      let user = "";
+
       socket.on('connect', () => {
         console.log('connecting');
-        
-        let user = document.querySelector("#username").value;
-        
+
+        user = document.querySelector("#username").value;
+
         if(!user) {
           user = 'unknown';
         }
-        
+
         socket.emit('join', { name: user });
       });
-      
+
       socket.on('msg', (data) => {
         console.log(data);
         const newMsg = document.createElement('p');
-        
+
         if (data.msg[0] === '/') {
           const commandString = data.msg.split(' ')[0];
           const messageString = data.msg.substring(data.msg.indexOf(' ') + 1);
           var nameString, afterName;
-          
+
           switch (commandString) {
             case '/connect': {
               newMsg.innerHTML = `<span style="color:${data.color}">${data.name}:\</span> ${data.msg.substring(9)}`;
-              
+
               loadRooms(data.room, data.rooms);
-              
+
               break;
             }
             case '/me': {
@@ -59,7 +60,7 @@
               const flag = messageString.split(' ')[0];
               const name = messageString.split(' ')[1];
               const afterName = messageString.substring(messageString.indexOf(' ', messageString.indexOf(name)) + 1);
-              
+
               if (flag === 'To') {
                 newMsg.style.color = data.color;
                 newMsg.innerHTML = `${flag} \<span style="color:${data.recipColor}">${name}:\</span> ${afterName}`;
@@ -91,6 +92,7 @@
             }
             case '/error': {
               newMsg.innerHTML = `Server: ${data.msg.substring(6)}`;
+              socket.disconnect();
               break;
             }
             default: {
@@ -98,27 +100,27 @@
               break;
             }
           };
-          
+
         } else {
           newMsg.innerHTML = `<span style="color:${data.color}">${data.name}:\</span> ${data.msg}`;
         }
-        
+
         chat.appendChild(newMsg);
         chat.scrollTop = chat.scrollHeight;
       });
-      
+
       socket.on('nameError', (data) => {
         document.querySelector('#connectMessage').innerHTML = data.msg;
         socket.disconnect();
       });
-      
+
       const sendMessage = (e) => {
         if (message.value) {
           socket.emit('msgToServer', { msg: message.value });
           message.value = "";
         }
       };
-      
+
       const loadRooms = (currentRoom, roomList) => {
         rooms.innerHTML = '<h4>Rooms:</h4>';
         rooms.style.width = '';
@@ -147,14 +149,25 @@
         }
         document.querySelector('body').style.width = (chat.offsetWidth + rooms.offsetWidth) + 'px';
       };
-      
+
       const send = document.querySelector('#send');
       send.addEventListener('click', sendMessage);
+      
+      connect.removeEventListener('click', connectSocket);
+      connect.addEventListener('click', function() {
+        let newUser = document.querySelector("#username").value;
+
+        if(newUser) {
+          socket.emit('join', { name: user, newName: newUser });
+          user = newUser;
+        }
+      });
     };
 
     const init = () => {
       const connect = document.querySelector("#connect");
       connect.addEventListener('click', connectSocket);
+      
     };
 
     window.onload = init;
