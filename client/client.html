@@ -19,6 +19,7 @@
       const chat = document.querySelector("#chat");
       const rooms = document.querySelector("#rooms");
       const socket = io.connect();
+      let connected = false;
       let user = "";
 
       socket.on('connect', () => {
@@ -34,7 +35,6 @@
       });
 
       socket.on('msg', (data) => {
-        console.log(data);
         const newMsg = document.createElement('p');
 
         if (data.msg[0] === '/') {
@@ -47,7 +47,21 @@
               newMsg.innerHTML = `<span style="color:${data.color}">${data.name}:\</span> ${data.msg.substring(9)}`;
 
               loadRooms(data.room, data.rooms);
+              
+              if (!connected) {
+                connect.removeEventListener('click', connectSocket);
+                connect.addEventListener('click', function() {
+                  let newUser = document.querySelector("#username").value;
 
+                  if(newUser) {
+                    socket.emit('join', { name: user, newName: newUser });
+                    user = newUser;
+                  }
+                });
+
+                connected = true;
+              }
+              
               break;
             }
             case '/me': {
@@ -133,7 +147,6 @@
 
             clickWraper.innerHTML = roomList[roomNames[i]].roomName;
             clickWraper.href = "";
-            console.log(roomNames[i]);
             clickWraper.roomToJoin = roomNames[i];
             clickWraper.onclick = function() {
               socket.emit('msgToServer', { msg: `/join ${clickWraper.roomToJoin}` });
@@ -152,16 +165,6 @@
 
       const send = document.querySelector('#send');
       send.addEventListener('click', sendMessage);
-      
-      connect.removeEventListener('click', connectSocket);
-      connect.addEventListener('click', function() {
-        let newUser = document.querySelector("#username").value;
-
-        if(newUser) {
-          socket.emit('join', { name: user, newName: newUser });
-          user = newUser;
-        }
-      });
     };
 
     const init = () => {
